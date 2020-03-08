@@ -41,55 +41,51 @@ chart.TimeSeries.ggplot2<-
             yaxis.pct)
 
 {
-    
-    R <- checkData(R, method='xts')
+    y = checkData(R,method='xts')
   
-    # Stack columns as rows and add security role
-    R <- data.frame(date=index(R), coredata(R))
-    R <- data.frame(R[1], utils::stack(R[2:ncol(R)]))
+    # Extract basic info
+    columns = ncol(y)
+    rows = nrow(y)
+    columnnames = colnames(y)
     
-    col_names = colnames(R)
-    col_names[2] = "returns"
-    col_names[3] = "security"
+    y = data.frame(date=index(y),coredata(y))
     
-    colnames(R) = col_names
+    # Stack columns as rows and add variable role
+    y = data.frame(y[1], utils::stack(y[2:ncol(y)]))
+    col_names = colnames(y)
+    
+    col_names[2] = "value"
+    col_names[3] = "variable"
+    
+    colnames(y) = col_names
 
-    returns <- R[,"returns"]
-    date <- R[,"date"]
-    security <- R[,"security"]
-    
+    # Plotting
+    plot <- ggplot2::ggplot(y, ggplot2::aes(x = date, y = value)) +
+      ggplot2::geom_line(ggplot2::aes(color = colorset), size = lwd) +
+      ggplot2::ggtitle(main)
+
     # adjust of yaxis if in percentage
     if(yaxis.pct)
-      returns = returns * 100
-    # Plotting
-    p <- ggplot2::ggplot(R, ggplot2::aes(x = date, y = returns, color = security)) +
-                               ggplot2::geom_line(size = lwd) +
-                               ggplot2::ggtitle(main)
+      y = y * 100
 
-
-
-    if(mode(colorset) == "character"){
-      p <- p + ggplot2::scale_color_brewer(palette=colorset)
-    }
-    
     # format xlim and ylim
     if(!is.null(xlim[1])) # is.na or is.null?
-      p <- p+xlim(xlim)
+      plot+xlim(xlim)
     if(!is.null(ylim[1])){
-      p <- p+ylim(ylim)
+      plot+ylim(ylim)
     }
 
     #draw lines and add title
     # grid line format
-    p <- p + ggplot2::theme(
-                    panel.grid = ggplot2::element_line(colour = grid.color,
-                                                        linetype = grid.lty)
-                        )
+    plot + ggplot2::theme(
+      panel.grid = ggplot2::element_line(colour = grid.color,
+                                         linetype = grid.lty)
+    )
 
     # set legend position
-    p <-p + ggplot2::theme(legend.position = legend.loc)
-    p <- p + xlab(xlab) +ylab(ylab)
+    plot + ggplot2::theme(legend.position = legend.loc)
+    plot + xlab(xlab) +ylab(ylab)
 
 
-    return(p)
+    return(plot)
   }
