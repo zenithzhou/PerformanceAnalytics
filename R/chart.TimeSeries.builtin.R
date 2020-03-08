@@ -37,7 +37,8 @@ chart.TimeSeries.builtin <-
            grid.color, 
            grid.lty, 
            xaxis.labels,
-           yaxis.pct){
+           yaxis.pct,
+           ...){
     
     y = checkData(R,method='xts')
     
@@ -66,6 +67,10 @@ chart.TimeSeries.builtin <-
     # Needed for finding aligned dates for event lines and period areas
     rownames = as.Date(time(y))
     rownames = format(strptime(rownames,format = date.format.in), date.format)
+    
+    print(rownames)
+    time.scale = periodicity(y)$scale
+    ep = axTicksByTime(y,major.ticks, format.labels = date.format)
     
     # If the Y-axis is ln
     logaxis = ""
@@ -100,7 +105,9 @@ chart.TimeSeries.builtin <-
                   yaxis.left = yaxis.left, 
                   yaxis.right = yaxis.right, 
                   grid.col = grid.color, 
-                  legend.loc = NULL)
+                  legend.loc = legend.loc,
+                  ...)
+    
     
     if(!is.null(event.lines)) {
       
@@ -109,7 +116,6 @@ chart.TimeSeries.builtin <-
         event.ind = c(event.ind, grep(event.lines[event], rownames))
       }
       number.event.labels = ((length(event.labels)-length(event.ind) + 1):length(event.labels))
-      
       # Draw any areas in the background
       if(!is.null(period.areas)) {
         # build a list of specific dates to find from xts ranges given
@@ -121,20 +127,18 @@ chart.TimeSeries.builtin <-
         par(font = 2)
         p$Env$period.color <- period.color
         p <- addEventLines(xts(event.labels[number.event.labels], time(y)[event.ind]), 
-                           srt = 90, offset = 1.2, pos = 2, lty = 2)
+                           srt = 90, offset = 1.2, pos = 2, lty = 2, ...)
         for(period in 1:length(period.dat)){
           if(!is.na(period.dat[[period]][1]))
             p <- addPolygon(xts(matrix(c(min(y), max(y), min(y), max(y)), ncol = 2, byrow = TRUE), 
-                                period.dat[[period]]), on = 1, col = period.color)
+                                period.dat[[period]]), on = 1, col = period.color, ...)
         }
         par(opar)
       }
     }
-    
     # Draw a solid reference line at zero
     p$Env$element.color <- element.color
     p <- addSeries(xts(rep(0, rows), time(y)), col = element.color, on = 1)
-    
     # Expand the attributes to #columns if fewer values are passed in
     # (e.g., only one), to allow the user to pass in line, type, or
     # symbol variations.
@@ -144,14 +148,13 @@ chart.TimeSeries.builtin <-
       lty = rep(lty,columns)
     if(length(pch) < columns)
       pch = rep(pch,columns)
-    
     if(!is.null(legend.loc)) {
       if(!hasArg(legend.names))
         legend.names <- columnnames
       # add legend
       p$Env$cex.legend <- cex.legend
       p <- addLegend(legend.loc, legend.names, 
-                     lty = lty, lwd = lwd, cex = cex.legend)
+                     lty = lty, lwd = lwd, cex = cex.legend, ...)
     }
     
     return(p)
