@@ -68,7 +68,6 @@ chart.TimeSeries.builtin <-
     rownames = as.Date(time(y))
     rownames = format(strptime(rownames,format = date.format.in), date.format)
     
-    print(rownames)
     time.scale = periodicity(y)$scale
     ep = axTicksByTime(y,major.ticks, format.labels = date.format)
     
